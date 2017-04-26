@@ -1,14 +1,12 @@
 //
-//  EZPDFDragDelegateView.m
-//  ezPDF Player
+//  DragDelegateView.m
 //
-//  Created by puttana on 2016. 2. 17..
-//  Copyright © 2016년 Unidocs. All rights reserved.
+//  Created by Shon on 2017. 4. 23..
 //
 
-#import "EZPDFDragDelegateView.h"
+#import "DragDelegateView.h"
 
-@implementation EZPDFDragDelegateView
+@implementation DragDelegateView
 
 /*
 // Only override drawRect: if you perform custom drawing.

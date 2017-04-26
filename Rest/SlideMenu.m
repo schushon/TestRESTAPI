@@ -1,15 +1,16 @@
 //
-//  EZPDFSlideMenu.m
-//  ezPDF Player
+//  SlideMenu.m
 //
-//  Created by puttana on 2016. 2. 23..
-//  Copyright © 2016년 Unidocs. All rights reserved.
+//  Created by Shon on 2017. 4. 23..
 //
 
-#import "EZPDFSlideMenu.h"
-#import "CustomPDFView.h"
-#import "EZPDFFileTableViewController.h"
-#import "EZPDFFileItem.h"
+#import "SlideMenu.h"
+#import "ViewController.h"
+#import <RestKit/RestKit.h>
+#import "User.h"
+
+#define kBASEURL    @"https://api.github.com"
+#define kUSERNAME   "jakewharton"
 
 CGFloat PointDistance(CGPoint a, CGPoint b)
 {
@@ -21,17 +22,19 @@ CGFloat PointDistance(CGPoint a, CGPoint b)
 
 //#define FULL_MENU
 
-@interface EZPDFSlideMenu ()
+@interface SlideMenu ()
 
-@property(nonatomic, assign) CGFloat width;
-@property(nonatomic, assign) CGPoint startPoint;
-@property(nonatomic, assign) CGPoint oldPoint;
-@property(nonatomic, assign) CGPoint lastPoint;
-@property(nonatomic, assign) BOOL    bReload;
+@property (nonatomic, strong) NSArray *profiles;
+@property (nonatomic, assign) CGFloat width;
+@property (nonatomic, assign) CGPoint startPoint;
+@property (nonatomic, assign) CGPoint oldPoint;
+@property (nonatomic, assign) CGPoint lastPoint;
+@property (nonatomic, assign) BOOL bReload;
+
 @end
 
 
-@implementation EZPDFSlideMenu
+@implementation SlideMenu
 
 - (void)viewDidLoad
 {
@@ -45,74 +48,15 @@ CGFloat PointDistance(CGPoint a, CGPoint b)
     
     self.width = self.view.frame.size.width;
     
-    self.frontSwitch.on = [self.reader isFrontPage];
-    self.bwSwitch.on = [self.reader isBWEffect];
-    self.bwSlider.value = [self.reader getDarkness];
-    self.effectSwitch.on = [self.reader isFlipEffect];
-    
-    [self updateScrollLabel];
-    [self updateSidePageLabel];
-    [self updatePageReadDirection];
     self.bReload = YES;
+    
+    self.profiles = nil;  //self.profiles[0];
 }
 
 - (void)didReceiveMemoryWarning
 {
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
-}
-
-- (void)updateSidePageLabel
-{
-    NSString *title = [self.reader isDoubleSidePage] ? NSLocalizedString(@" SinglePage View", "") : NSLocalizedString(@" DoublePage View", "");
-    self.frontSwitch.enabled = [self.reader isDoubleSidePage];
-    
-    UIImage *img = [self.reader isDoubleSidePage] ? [UIImage imageNamed:@"btn_singlepage_nor"] : [UIImage imageNamed:@"btn_doublepage_nor"];
-    UIImage *himg = [self.reader isDoubleSidePage] ? [UIImage imageNamed:@"btn_singlepage_nor"] : [UIImage imageNamed:@"btn_doublepage_nor"];
-    
-    [self.doubleSideButton setTitle:title forState:UIControlStateNormal];
-    [self.doubleSideButton setImage:img forState:UIControlStateNormal];
-    [self.doubleSideButton setImage:himg forState:UIControlStateHighlighted];
-}
-
-- (void)updateScrollLabel
-{
-    NSString *title = [self.reader isScroll] ? NSLocalizedString(@" Horizental Scrolling", "") : NSLocalizedString(@" Vertical Scrolling", "");
-
-    UIImage *img = [self.reader isScroll] ? [UIImage imageNamed:@"btn_horizontal_nor"] : [UIImage imageNamed:@"btn_vertical_nor"];
-    UIImage *himg = [self.reader isScroll] ? [UIImage imageNamed:@"btn_horizontal_nor"] : [UIImage imageNamed:@"btn_vertical_nor"];
-    
-    self.effectSwitch.enabled = ![self.reader isScroll];
-    
-    [self.scrollingButton setTitle:title forState:UIControlStateNormal];
-    [self.scrollingButton setImage:img forState:UIControlStateNormal];
-    [self.scrollingButton setImage:himg forState:UIControlStateHighlighted];
-}
-
-- (void)updatePageReadDirection
-{
-    switch ([self.reader isReadDirection]) {
-        case EDPageReadDirectionAuto:
-            break;
-        case EDPageReadDirectionRight:
-            [self.readDirectButton setTitle:NSLocalizedString(@"  Read Direction Right", "") forState:UIControlStateNormal];
-            [self.readDirectButton setImage:[UIImage imageNamed:@"pageleft"] forState:UIControlStateNormal];
-            [self.readDirectButton setImage:[UIImage imageNamed:@"pageleft"] forState:UIControlStateHighlighted];
-
-            break;
-        case EDPageReadDirectionLeft:
-            [self.readDirectButton setTitle:NSLocalizedString(@"  Read Direction Left", "") forState:UIControlStateNormal];
-            [self.readDirectButton setImage:[UIImage imageNamed:@"pageright"] forState:UIControlStateNormal];
-            [self.readDirectButton setImage:[UIImage imageNamed:@"pageright"] forState:UIControlStateHighlighted];
-            break;
-        default:
-            break;
-    }
-   
-}
-- (void)updateStoryBookLabel
-{
-//    self.storyBookPlayButton.selected = [self.reader isAutoPlaying];
 }
 
 #pragma mark - Table view data source
@@ -131,19 +75,7 @@ CGFloat PointDistance(CGPoint a, CGPoint b)
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-    if ([self.reader.path length] == 0)
-    {
-        return 1;
-    }
-    
-#ifdef FULL_MENU
-    return 8;
-#else
-    if (self.bwSwitch.on) {
-        return 11;
-    }
-    return 10;
-#endif
+    return 6;
 }
 
 - (void)tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath
@@ -195,11 +127,11 @@ CGFloat PointDistance(CGPoint a, CGPoint b)
  }
  */
 
- #pragma mark - Table view delegate
- // In a xib-based application, navigation from a table can be handled in -tableView:didSelectRowAtIndexPath:
- - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
+#pragma mark - Table view delegate
+// In a xib-based application, navigation from a table can be handled in -tableView:didSelectRowAtIndexPath:
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
- 
+    //
 }
 
 /*
@@ -212,157 +144,56 @@ CGFloat PointDistance(CGPoint a, CGPoint b)
  }
  */
 
-#pragma mark - IBAction
-//    if (self.fileController == nil) {
-//        EZPDFFileTableViewController *ctrl = [[EZPDFFileTableViewController alloc] initWithNibName:@"EZPDFFileTableViewController" bundle:nil];
-//        [self.view addSubview:ctrl.view];
-//        [self addChildViewController:ctrl];
-//        self.fileController = ctrl;
-//        [self.fileController resetPosition];
-//    }
-- (IBAction)fileList:(id)sender
+- (void)reloadData
 {
-    EZPDFFileTableViewController *ctrl = [[EZPDFFileTableViewController alloc] initWithNibName:@"EZPDFFileTableViewController" bundle:nil];
-    //ctrl.modalPresentationStyle = UIModalPresentationFormSheet;
-    ctrl.openedItem = [EZPDFFileItem fileItem:[self.reader localPath]];
-    //ctrl.recentlyList = [self.reader recentlyList];
-    [self presentViewController:ctrl animated:YES completion:nil];
-    [self dismiss:nil];
-
-}
-
-- (IBAction)markGradeCurrentPage:(id)sender
-{
-    [self.reader markGradeCurrentPage:sender];
-    [self dismiss:nil];
-}
-
-- (IBAction)markGradeAllPage:(id)sender
-{
-    [self.reader markGradeAllPage:sender];
-    [self dismiss:nil];
-}
-
-- (IBAction)clearMarkGradeCurrentPage:(id)sender
-{
-    [self.reader clearMarkGradeCurrentPage:sender];
-    [self dismiss:nil];
-}
-
-- (IBAction)clearMarkGradeAllPage:(id)sender
-{
-    [self.reader clearMarkGradeAllPage:sender];
-    [self dismiss:nil];
-}
-
-// Double / Single pageView
-- (IBAction)doubleSideList:(id)sender
-{
-    [self.reader toggleSidePage];
-    [self updateSidePageLabel];
-    [self dismiss:nil];
-}
-
-// Horizontal / Vertical Scrolling
-- (IBAction)scolling:(id)sender
-{
-    [self.reader toggleSideScroll];
+//    User *user = _users[0];
+//    
+//    NSURL *imageURL = [NSURL URLWithString:user.profile.avatarUrl_];
+//    
+//    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), ^
+//                   {
+//                       NSData *imageData = [NSData dataWithContentsOfURL:imageURL];
+//                       
+//                       dispatch_async(dispatch_get_main_queue(), ^
+//                                      {
+//                                          self.profileImageView.image = [UIImage imageWithData:imageData];
+//                                      });
+//                   });
+//    
+//    dispatch_async(dispatch_get_main_queue(), ^
+//                   {
+//                       self.nameLabel.text = user.profile.name_;
+//                       self.emailLabel.text = user.profile.email_;
+//                       self.companyLabel.text = user.profile.company_;
+//                       self.locationLabel.text = user.profile.location_;
+//                       //self.blogLabel.text = user.profile.bio_;
+//                       self.followersLabel.text = [NSString stringWithFormat:@"%@", user.profile.followers_];
+//                       self.followingLabel.text = [NSString stringWithFormat:@"%@", user.profile.following_];
+//                       self.repositoriesLabel.text = [NSString stringWithFormat:@"%@", user.profile.publicRepos_];
+//                       [self.tableView reloadData];
+//                   });
     
-    [self updateScrollLabel];
-    
-    [self dismiss:nil];
-}
-
-- (IBAction)changeFrontpageOnOff:(id)sender
-{
-    UISwitch *Switch = sender;
-    [self.reader toggleSideFront:Switch.on];
-    [self dismiss:nil];
-}
-
-- (IBAction)clearKnowledgeTapCurrentPage:(id)sender
-{
-    [self.reader clearKnowleadgeTapCurrentPage:sender];
-    [self dismiss:nil];
-}
-
-- (IBAction)clearCurrentPage:(id)sender
-{
-    [self.reader clearCurrentPage:sender];
-    [self dismiss:nil];
-}
-
-- (IBAction)storyBookPlay:(id)sender
-{
-    [self.reader autoPlayToggle:sender];
-    [self dismiss:nil];
-}
-
-- (IBAction)bookEffect:(id)sender{
-    [self.reader bookEffect:self.effectSwitch.on];
-    [self dismiss:nil];
-}
-- (IBAction)blackandwhite:(id)sender{
-    [self.reader blackandwhite:self.bwSwitch.on];
     [self.tableView reloadData];
 }
 
-- (IBAction)bwslider:(id)sender{
-    if (self.bReload) {
-        self.bReload = NO;
-        [self performSelector:@selector(callBWSlider) withObject:nil afterDelay:0.4];
-    }
-
-}
-
-- (void)callBWSlider{
-     [self.reader darkness:self.bwSlider.value];
-    self.bReload = YES;
-}
-
-- (IBAction)print:(id)sender {
-    [self.reader print];
-}
-
-- (IBAction)readDirection:(id)sender {
-    if ([self.reader isReadDirection] == EDPageReadDirectionRight) {
-         [self.reader readDirection:EDPageReadDirectionLeft];
-    }
-    else if([self.reader isReadDirection] == EDPageReadDirectionLeft){
-         [self.reader readDirection:EDPageReadDirectionRight];
-    }
-    else{
-        
-    }
-    
-    [self updatePageReadDirection];
-
-    [self dismiss:nil];
-}
-
-- (IBAction)addContents:(id)sender{
-    [self.reader addContents:self.addContentsButton.selected];
-    self.addContentsButton.selected = !self.addContentsButton.isSelected;
-    [self dismiss:nil];
-}
-
+#pragma mark - IBAction
 - (void)dismissFromView:(UIView *)aView
 {
     [UIView animateKeyframesWithDuration:0.3 delay:0 options:UIViewKeyframeAnimationOptionCalculationModeLinear animations:^
-    {
-        CGRect f = aView.frame;
-        f.origin.x -= self.width;
-        f.size.width = self.width;
-        self.view.frame = f;
-        self.view.layer.shadowOpacity = 0.0;
-    } completion:^(BOOL finished)
-    {
-        self.dismissMenuButton.hidden = YES;
-        CGRect f = self.dragDelegateView.frame;
-        f.origin.x = 0.0;
-        self.dragDelegateView.frame = f;
-        self.view.hidden = YES;
-    }];
+     {
+         CGRect f = aView.frame;
+         f.origin.x -= self.width;
+         f.size.width = self.width;
+         self.view.frame = f;
+         self.view.layer.shadowOpacity = 0.0;
+     } completion:^(BOOL finished)
+     {
+         self.dismissMenuButton.hidden = YES;
+         CGRect f = self.dragDelegateView.frame;
+         f.origin.x = 0.0;
+         self.dragDelegateView.frame = f;
+         self.view.hidden = YES;
+     }];
 }
 
 - (IBAction)dismiss:(id)sender
@@ -380,21 +211,24 @@ CGFloat PointDistance(CGPoint a, CGPoint b)
 
 - (IBAction)slideUp:(id)sender
 {
+    [self configureRestKitForUser];
+    [self loadUsers];
+    
     [UIView animateKeyframesWithDuration:0.3 delay:0 options:UIViewKeyframeAnimationOptionCalculationModeLinear animations:^
-    {
-        CGRect f = self.view.superview.frame;
-        f.origin.x = 0;
-        f.size.width = self.width;
-        self.view.frame = f;
-        self.view.layer.shadowOpacity = 0.1;
-        self.view.hidden = NO;
-    } completion:^(BOOL finished)
      {
-        self.dismissMenuButton.hidden = NO;
-        CGRect f = self.dragDelegateView.frame;
-        f.origin.x = CGRectGetMaxX(self.view.frame);
-        self.dragDelegateView.frame = f;
-    }];
+         CGRect f = self.view.superview.frame;
+         f.origin.x = 0;
+         f.size.width = self.width;
+         self.view.frame = f;
+         self.view.layer.shadowOpacity = 0.1;
+         self.view.hidden = NO;
+     } completion:^(BOOL finished)
+     {
+         self.dismissMenuButton.hidden = NO;
+         CGRect f = self.dragDelegateView.frame;
+         f.origin.x = CGRectGetMaxX(self.view.frame);
+         self.dragDelegateView.frame = f;
+     }];
     
     [self.tableView reloadData];
 }
@@ -458,21 +292,95 @@ CGFloat PointDistance(CGPoint a, CGPoint b)
     }
 }
 
-- (void)reloadData
+#pragma mark - RESTKit
+- (void)configureRestKitForUser
 {
-    dispatch_async(dispatch_get_main_queue(), ^
-    {
-        self.frontSwitch.on = [self.reader isFrontPage];
-        self.bwSwitch.on = [self.reader isBWEffect];
-        self.bwSlider.value = [self.reader getDarkness];
-        self.effectSwitch.on = [self.reader isFlipEffect];
-        
-        [self.tableView reloadData];
-        [self updateSidePageLabel];
-        [self updateScrollLabel];
-        [self updateStoryBookLabel];
-        [self updatePageReadDirection];
-    });
+    // initialize AFNetworking HTTPClient
+    NSURL *baseURL = [NSURL URLWithString:kBASEURL];  // [NSURL URLWithString:@"https://api.github.com"];
+    AFRKHTTPClient *client = [[AFRKHTTPClient alloc] initWithBaseURL:baseURL];
+    
+    // initialize RestKit
+    RKObjectManager *objectManager = [[RKObjectManager alloc] initWithHTTPClient:client];
+    
+    // setup object mappings
+    RKObjectMapping *userMapping = [RKObjectMapping mappingForClass:[User class]];
+    [userMapping addPropertyMapping:[RKAttributeMapping attributeMappingFromKeyPath:nil toKeyPath:@"user"]];
+    
+    RKObjectMapping *profileMapping = [RKObjectMapping mappingForClass:[Profile class]];
+    [profileMapping addAttributeMappingsFromDictionary:@{@"login" : @"login_",  // "JakeWharton",
+                                                         @"id" : @"ID_",  // 66577,
+                                                         @"avatar_url" : @"avatarUrl_",  // "https://avatars3.githubusercontent.com/u/66577?v=3",
+                                                         @"gravatar_id" : @"gravatarID_",  // "",
+                                                         @"url" : @"url_",  // "https://api.github.com/users/JakeWharton",
+                                                         @"html_url" : @"htmlUrl_",  // "https://github.com/JakeWharton",
+                                                         @"followers_url" : @"followersUrl_",  // "https://api.github.com/users/JakeWharton/followers",
+                                                         @"following_url" : @"followingUrl_",  // "https://api.github.com/users/JakeWharton/following{/other_user}",
+                                                         @"gists_url" : @"gistsUrl_",  // "https://api.github.com/users/JakeWharton/gists{/gist_id}",
+                                                         @"starred_url" : @"starredUrl_",  // "https://api.github.com/users/JakeWharton/starred{/owner}{/repo}",
+                                                         @"subscriptions_url" : @"subscriptionsUrl_",  // "https://api.github.com/users/JakeWharton/subscriptions",
+                                                         @"organizations_url" : @"organizationsUrl_",  // "https://api.github.com/users/JakeWharton/orgs",
+                                                         @"repos_url" : @"reposUrl_",  // "https://api.github.com/users/JakeWharton/repos",
+                                                         @"events_url" : @"eventsUrl_",  // "https://api.github.com/users/JakeWharton/events{/privacy}",
+                                                         @"received_events_url" : @"receivedEventsUrl_",  // "https://api.github.com/users/JakeWharton/received_events",
+                                                         @"type" : @"type_",  // "User",
+                                                         @"site_admin" : @"siteAdmin_",  // false,
+                                                         @"name" : @"name_",  // "Jake Wharton",
+                                                         @"company" : @"company_",  // "Square, Inc.",
+                                                         @"blog" : @"blog_",  // "http://jakewharton.com",
+                                                         @"location" : @"location_",  // "Pittsburgh, PA, USA",
+                                                         @"email" : @"email_",  // "jakewharton@gmail.com",
+                                                         @"hireable" : @"hireable_",  // null,
+                                                         @"bio" : @"bio_",  // null,
+                                                         @"public_repos" : @"publicRepos_",  // 93,
+                                                         @"public_gists" : @"publicGists_",  // 54,
+                                                         @"followers" : @"followers_",  // 34096,
+                                                         @"following" : @"following_",  // 12,
+                                                         @"created_at" : @"createdDate_",  // "2009-03-24T16:09:53Z",
+                                                         @"updated_at" : @"updatedDate_"}];  // "2017-04-25T13:42:32Z"
+    
+    NSString *userName = [NSString stringWithUTF8String:kUSERNAME];
+    NSString *pathPattern = [NSString stringWithFormat:@"/users/%@", userName];
+    
+    // define relationship mapping
+    [userMapping addPropertyMapping:[RKRelationshipMapping relationshipMappingFromKeyPath:nil toKeyPath:@"profile" withMapping:profileMapping]];
+    
+    // register mappings with the provider using a response descriptor
+    RKResponseDescriptor *responseDescriptor = [RKResponseDescriptor responseDescriptorWithMapping:userMapping method:RKRequestMethodGET pathPattern:pathPattern keyPath:nil statusCodes:[NSIndexSet indexSetWithIndex:200]];  //:(RKStatusCodeClassSuccessful)
+    
+    [objectManager addResponseDescriptor:responseDescriptor];
+    
+    // 주석추가
 }
+
+- (void)loadUsers
+{
+    //    NSString *latLon = @"37.33,-122.03"; // approximate latLon of The Mothership
+    //    NSString *clientID = [NSString stringWithUTF8String:kCLIENTID];
+    //    NSString *clientSecret = [NSString stringWithUTF8String:kCLIENTSECRET];
+    //
+    //    NSDictionary *queryParams;
+    //
+    //    queryParams = [NSDictionary dictionaryWithObjectsAndKeys:
+    //                   latLon, @"ll",
+    //                   clientID, @"client_id",
+    //                   clientSecret, @"client_secret",
+    //                   @"4bf58dd8d48988d1e0931735", @"categoryId",
+    //                   @"20140118", @"v", nil];
+    
+    NSString *userName = [NSString stringWithUTF8String:kUSERNAME];
+    NSString *pathPattern = [NSString stringWithFormat:@"/users/%@", userName];
+    
+    [[RKObjectManager sharedManager] getObjectsAtPath:pathPattern parameters:nil success:^(RKObjectRequestOperation *operation, RKMappingResult *mappingResult)
+     {
+         _profiles = mappingResult.array;
+         
+         //self.slideMenu.profiles = _profiles;
+         //[self.slideMenu reloadData];
+     } failure:^(RKObjectRequestOperation *operation, NSError *error)
+     {
+         NSLog(@"What do you mean by 'there is no coffee?': %@", error);
+     }];
+}
+
 
 @end

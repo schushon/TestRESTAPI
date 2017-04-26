@@ -7,10 +7,15 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "DragDelegateView.h"
+#import "SlideMenu.h"
 
 @interface ViewController : UIViewController <UITableViewDelegate, UITableViewDataSource>
 
+@property (nonatomic, weak) IBOutlet UIButton *dismissMenuButton;
+@property (nonatomic, weak) IBOutlet DragDelegateView *dragDelegateView;
 @property (nonatomic, weak) IBOutlet UITableView *repoTableView;
+@property (nonatomic, weak) SlideMenu *slideMenu;
 
 @end
 

@@ -1,14 +1,12 @@
 //
-//  EZPDFDragDelegateView.h
-//  ezPDF Player
+//  DragDelegateView.h
 //
-//  Created by puttana on 2016. 2. 17..
-//  Copyright © 2016년 Unidocs. All rights reserved.
+//  Created by Shon on 2017. 4. 23..
 //
 
 #import <UIKit/UIKit.h>
 
-@interface EZPDFDragDelegateView : UIView
+@interface DragDelegateView : UIView
 
 @property(nonatomic, weak) UIViewController *delegateController;
 

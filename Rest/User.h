@@ -7,14 +7,10 @@
 //
 
 #import <Foundation/Foundation.h>
-#import "RelationUrls.h"
-#import "Repository.h"
-#import "Owner.h"
+#import "Profile.h"
 
 @interface User : NSObject
 
-@property (nonatomic, strong) RelationUrls *relationUrls;
-@property (nonatomic, strong) Repository *repository;
-@property (nonatomic, strong) Owner *owner;
+@property (nonatomic, strong) Profile *profile;
 
 @end

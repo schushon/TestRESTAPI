@@ -9,17 +9,23 @@
 #import "ViewController.h"
 #import <RestKit/RestKit.h>
 #import "RepoTableViewCell.h"
-#import "User.h"
+#import "Repo.h"
+//#import "User.h"
+#import "Profile.h"
 #import "HomepageViewController.h"
 
-#define kUSERNAME "jakewharton"
+#define kBASEURL    @"https://api.github.com"
+#define kUSERNAME   "jakewharton"
 
 @interface ViewController ()
 {
     NSString *theUrlString;
+    NSURL *baseURL;
 }
 
+@property (nonatomic, strong) NSArray *repos;
 @property (nonatomic, strong) NSArray *users;
+@property (nonatomic, assign) BOOL appearUpdateRotate;
 
 @end
 
@@ -33,8 +39,23 @@
     {
         // Get reference to the destination view controller
         HomepageViewController *homepageViewController = [segue destinationViewController];
-        homepageViewController.homepageURLString = theUrlString;
+        homepageViewController.homepageURLString = sender;  // theUrlString;
     }
+}
+
+// 사이드 메뉴 호출 버튼 터치시 호출
+- (IBAction)slideUpMenu:(id)sender
+{
+    //[self configureRestKitForUser];
+    //[self loadUsers];
+    
+    [self.slideMenu slideUp:nil];
+}
+
+// 사이드 메뉴 히든 버튼 터치시 호출
+- (IBAction)dismissMenu:(id)sender
+{
+    [self.slideMenu dismiss:sender];
 }
 
 - (void)viewDidLoad
@@ -42,8 +63,72 @@
     [super viewDidLoad];
     // Do any additional setup after loading the view, typically from a nib.
     
-    [self configureRestKit];
-    [self loadUsers];
+    baseURL = [NSURL URLWithString:kBASEURL];  // [NSURL URLWithString:@"https://api.github.com"];
+    
+    [self configureRestKitForRepo];
+    [self loadRepos];
+    
+    //[self configureRestKitForUser];
+    //[self loadUsers];
+}
+
+- (void)viewDidAppear:(BOOL)animated
+{
+    [super viewDidAppear:animated];
+    
+    // 슬라이드 메뉴 생성
+    if (self.slideMenu == nil)
+    {
+        UIStoryboard *sb = [UIStoryboard storyboardWithName:@"SlideMenu" bundle:nil];
+        self.slideMenu = [sb instantiateViewControllerWithIdentifier:@"SlideMenu"];
+        [self addChildViewController:self.slideMenu];
+        
+        self.slideMenu.mainView = self;
+        [self.view addSubview:self.slideMenu.view];
+        
+        [self.slideMenu resetPosition];
+        self.dragDelegateView.delegateController = self.slideMenu;
+        self.slideMenu.dragDelegateView = self.dragDelegateView;
+        self.slideMenu.dismissMenuButton = self.dismissMenuButton;
+    }
+    
+    if (self.appearUpdateRotate)
+    {
+        self.appearUpdateRotate = NO;
+        [self.slideMenu resetPosition];
+    }
+
+    //[self.slideMenu reloadData];
+}
+
+- (void)viewWillTransitionToSize:(CGSize)size withTransitionCoordinator:(id <UIViewControllerTransitionCoordinator>)coordinator
+{
+    [super viewWillTransitionToSize:size withTransitionCoordinator:coordinator];
+    
+    UIViewController *pv = self.presentedViewController;
+    UIModalPresentationStyle style = pv.modalPresentationStyle;
+    
+    if (pv && style == UIModalPresentationFullScreen)
+    {
+        self.appearUpdateRotate = YES;
+    }
+    
+    [coordinator animateAlongsideTransition:^(id<UIViewControllerTransitionCoordinatorContext> context)
+     {
+         CGRect f = self.slideMenu.view.frame;
+         
+         if (CGRectGetMinX(f) < 0)
+         {
+             [self.slideMenu dismiss:nil];
+         }
+         else
+         {
+             [self.slideMenu slideUp:nil];
+         }
+     } completion:^(id<UIViewControllerTransitionCoordinatorContext> context)
+     {
+         [[UIApplication sharedApplication] setStatusBarHidden:NO withAnimation:UIStatusBarAnimationNone];
+     }];
 }
 
 - (void)didReceiveMemoryWarning
@@ -55,7 +140,7 @@
 #pragma mark - Table View
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-    return _users.count;
+    return _repos.count;
 }
 
 // Variable height support
@@ -68,9 +153,9 @@
 {
     RepoTableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"RepoTableViewCell" forIndexPath:indexPath];
     
-    User *user = _users[indexPath.row];
+    Repo *repo = _repos[indexPath.row];
     
-    NSURL *imageURL = [NSURL URLWithString:user.owner.avatarUrl_];
+    NSURL *imageURL = [NSURL URLWithString:repo.owner.avatarUrl_];
     
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), ^
                    {
@@ -83,41 +168,41 @@
                                       });
                    });
     
-    cell.repoNameLabel.text = user.repository.name_;
-    cell.repoDescribeLabel.text = user.repository.description_;
-    cell.repoStarCountLabel.text = [NSString stringWithFormat:@"Star Count : %@", user.repository.stargazersCount_];
+    cell.repoNameLabel.text = repo.repository.name_;
+    cell.repoDescribeLabel.text = repo.repository.description_;
+    cell.repoStarCountLabel.text = [NSString stringWithFormat:@"Star Count : %@", repo.repository.stargazersCount_];
     
     return cell;
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    User *user = _users[indexPath.row];
+    Repo *repo = _repos[indexPath.row];
     
-    NSLog(@"user.repository.homepage_ : %@", user.repository.homepage_);
+    NSLog(@"repo.repository.homepage_ : %@", repo.repository.homepage_);
     
     //HomepageViewController *homepageViewController = [HomepageViewController new];
-    //homepageViewController.homepageURLString = user.repository.homepage_;
-    theUrlString = user.repository.homepage_;
+    //homepageViewController.homepageURLString = repo.repository.homepage_;
+    //theUrlString = repo.repository.homepage_;
     
     //[self.navigationController presentViewController:homepageViewController animated:YES completion:nil];
     
-    [self performSegueWithIdentifier:@"HPV" sender:self];
+    [self performSegueWithIdentifier:@"HPV" sender:repo.repository.homepage_];  // self];
 }
 
 #pragma mark - RESTKit
-- (void)configureRestKit
+- (void)configureRestKitForRepo
 {
     // initialize AFNetworking HTTPClient
-    NSURL *baseURL = [NSURL URLWithString:@"https://api.github.com"];
+    //NSURL *baseURL = [NSURL URLWithString:kBASEURL];
     AFRKHTTPClient *client = [[AFRKHTTPClient alloc] initWithBaseURL:baseURL];
     
     // initialize RestKit
     RKObjectManager *objectManager = [[RKObjectManager alloc] initWithHTTPClient:client];
     
     // setup object mappings
-    RKObjectMapping *userMapping = [RKObjectMapping mappingForClass:[User class]];
-    [userMapping addAttributeMappingsFromArray:@[@"repo"]];
+    RKObjectMapping *repoMapping = [RKObjectMapping mappingForClass:[Repo class]];
+    [repoMapping addAttributeMappingsFromArray:@[@"repo"]];
     
     // define location object mapping
     RKObjectMapping *relationUrlsMapping = [RKObjectMapping mappingForClass:[RelationUrls class]];
@@ -212,22 +297,24 @@
                                                            @"site_admin" : @"siteAdmin_"}];  // ": false
     
     // define relationship mapping
-    [userMapping addPropertyMapping:[RKRelationshipMapping relationshipMappingFromKeyPath:nil toKeyPath:@"relationUrls" withMapping:relationUrlsMapping]];
+    [repoMapping addPropertyMapping:[RKRelationshipMapping relationshipMappingFromKeyPath:nil toKeyPath:@"relationUrls" withMapping:relationUrlsMapping]];
     
-    [userMapping addPropertyMapping:[RKRelationshipMapping relationshipMappingFromKeyPath:nil toKeyPath:@"repository" withMapping:repositoryMapping]];
+    [repoMapping addPropertyMapping:[RKRelationshipMapping relationshipMappingFromKeyPath:nil toKeyPath:@"repository" withMapping:repositoryMapping]];
     
-    [userMapping addPropertyMapping:[RKRelationshipMapping relationshipMappingFromKeyPath:@"owner" toKeyPath:@"owner" withMapping:ownerMapping]];
+    [repoMapping addPropertyMapping:[RKRelationshipMapping relationshipMappingFromKeyPath:@"owner" toKeyPath:@"owner" withMapping:ownerMapping]];
     
     NSString *userName = [NSString stringWithUTF8String:kUSERNAME];
     NSString *pathPattern = [NSString stringWithFormat:@"/users/%@/repos", userName];
     
     // register mappings with the provider using a response descriptor
-    RKResponseDescriptor *responseDescriptor = [RKResponseDescriptor responseDescriptorWithMapping:userMapping method:RKRequestMethodGET pathPattern:pathPattern keyPath:nil statusCodes:[NSIndexSet indexSetWithIndex:200]];
+    RKResponseDescriptor *responseDescriptor = [RKResponseDescriptor responseDescriptorWithMapping:repoMapping method:RKRequestMethodGET pathPattern:pathPattern keyPath:nil statusCodes:[NSIndexSet indexSetWithIndex:200]];
     
     [objectManager addResponseDescriptor:responseDescriptor];
+    
+    // 주석추가
 }
 
-- (void)loadUsers
+- (void)loadRepos
 {
     //    NSString *latLon = @"37.33,-122.03"; // approximate latLon of The Mothership
     //    NSString *clientID = [NSString stringWithUTF8String:kCLIENTID];
@@ -247,7 +334,7 @@
     
     [[RKObjectManager sharedManager] getObjectsAtPath:pathPattern parameters:nil success:^(RKObjectRequestOperation *operation, RKMappingResult *mappingResult)
      {
-         _users = mappingResult.array;
+         _repos = mappingResult.array;
 
          [self.repoTableView reloadData];
      } failure:^(RKObjectRequestOperation *operation, NSError *error)
@@ -255,6 +342,90 @@
          NSLog(@"What do you mean by 'there is no coffee?': %@", error);
      }];
 }
+
+//#pragma mark - RESTKit
+//- (void)configureRestKitForUser
+//{
+//    // initialize AFNetworking HTTPClient
+//    //NSURL *baseURL = [NSURL URLWithString:kBASEURL];  // [NSURL URLWithString:@"https://api.github.com"];
+//    AFRKHTTPClient *client = [[AFRKHTTPClient alloc] initWithBaseURL:baseURL];
+//    
+//    // initialize RestKit
+//    RKObjectManager *objectManager = [[RKObjectManager alloc] initWithHTTPClient:client];
+//    
+//    // setup object mappings
+//    RKObjectMapping *profileMapping = [RKObjectMapping mappingForClass:[Profile class]];
+//    [profileMapping addAttributeMappingsFromDictionary:@{@"login" : @"login_",  // "JakeWharton",
+//                                                         @"id" : @"ID_",  // 66577,
+//                                                         @"avatar_url" : @"avatarUrl_",  // "https://avatars3.githubusercontent.com/u/66577?v=3",
+//                                                         @"gravatar_id" : @"gravatarID_",  // "",
+//                                                         @"url" : @"url_",  // "https://api.github.com/users/JakeWharton",
+//                                                         @"html_url" : @"htmlUrl_",  // "https://github.com/JakeWharton",
+//                                                         @"followers_url" : @"followersUrl_",  // "https://api.github.com/users/JakeWharton/followers",
+//                                                         @"following_url" : @"followingUrl_",  // "https://api.github.com/users/JakeWharton/following{/other_user}",
+//                                                         @"gists_url" : @"gistsUrl_",  // "https://api.github.com/users/JakeWharton/gists{/gist_id}",
+//                                                         @"starred_url" : @"starredUrl_",  // "https://api.github.com/users/JakeWharton/starred{/owner}{/repo}",
+//                                                         @"subscriptions_url" : @"subscriptionsUrl_",  // "https://api.github.com/users/JakeWharton/subscriptions",
+//                                                         @"organizations_url" : @"organizationsUrl_",  // "https://api.github.com/users/JakeWharton/orgs",
+//                                                         @"repos_url" : @"reposUrl_",  // "https://api.github.com/users/JakeWharton/repos",
+//                                                         @"events_url" : @"eventsUrl_",  // "https://api.github.com/users/JakeWharton/events{/privacy}",
+//                                                         @"received_events_url" : @"receivedEventsUrl_",  // "https://api.github.com/users/JakeWharton/received_events",
+//                                                         @"type" : @"type_",  // "User",
+//                                                         @"site_admin" : @"siteAdmin_",  // false,
+//                                                         @"name" : @"name_",  // "Jake Wharton",
+//                                                         @"company" : @"company_",  // "Square, Inc.",
+//                                                         @"blog" : @"blog_",  // "http://jakewharton.com",
+//                                                         @"location" : @"location_",  // "Pittsburgh, PA, USA",
+//                                                         @"email" : @"email_",  // "jakewharton@gmail.com",
+//                                                         @"hireable" : @"hireable_",  // null,
+//                                                         @"bio" : @"bio_",  // null,
+//                                                         @"public_repos" : @"publicRepos_",  // 93,
+//                                                         @"public_gists" : @"publicGists_",  // 54,
+//                                                         @"followers" : @"followers_",  // 34096,
+//                                                         @"following" : @"following_",  // 12,
+//                                                         @"created_at" : @"createdDate_",  // "2009-03-24T16:09:53Z",
+//                                                         @"updated_at" : @"updatedDate_"}];  // "2017-04-25T13:42:32Z"
+//    
+//    NSString *userName = [NSString stringWithUTF8String:kUSERNAME];
+//    NSString *pathPattern = [NSString stringWithFormat:@"/users/%@", userName];
+//    
+//    // register mappings with the provider using a response descriptor
+//    RKResponseDescriptor *responseDescriptor = [RKResponseDescriptor responseDescriptorWithMapping:profileMapping method:RKRequestMethodGET pathPattern:pathPattern keyPath:nil statusCodes:[NSIndexSet indexSetWithIndex:200]];
+//    
+//    [objectManager addResponseDescriptor:responseDescriptor];
+//    
+//    // 주석추가
+//}
+//
+//- (void)loadUsers
+//{
+//    //    NSString *latLon = @"37.33,-122.03"; // approximate latLon of The Mothership
+//    //    NSString *clientID = [NSString stringWithUTF8String:kCLIENTID];
+//    //    NSString *clientSecret = [NSString stringWithUTF8String:kCLIENTSECRET];
+//    //
+//    //    NSDictionary *queryParams;
+//    //
+//    //    queryParams = [NSDictionary dictionaryWithObjectsAndKeys:
+//    //                   latLon, @"ll",
+//    //                   clientID, @"client_id",
+//    //                   clientSecret, @"client_secret",
+//    //                   @"4bf58dd8d48988d1e0931735", @"categoryId",
+//    //                   @"20140118", @"v", nil];
+//    
+//    NSString *userName = [NSString stringWithUTF8String:kUSERNAME];
+//    NSString *pathPattern = [NSString stringWithFormat:@"/users/%@", userName];
+//    
+//    [[RKObjectManager sharedManager] getObjectsAtPath:pathPattern parameters:nil success:^(RKObjectRequestOperation *operation, RKMappingResult *mappingResult)
+//     {
+//         _users = mappingResult.array;
+//         
+//         self.slideMenu.users = _users;
+//         //[self.slideMenu reloadData];
+//     } failure:^(RKObjectRequestOperation *operation, NSError *error)
+//     {
+//         NSLog(@"What do you mean by 'there is no coffee?': %@", error);
+//     }];
+//}
 
 
 @end
