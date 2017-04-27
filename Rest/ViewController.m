@@ -22,7 +22,6 @@
     RKResponseDescriptor *responseDescriptor;
     
     NSString *theUrlString;
-    NSURL *baseURL;
 }
 
 @property (nonatomic, strong) NSArray *repos;
@@ -48,11 +47,6 @@
 // 사이드 메뉴 호출 버튼 터치시 호출
 - (IBAction)slideUpMenu:(id)sender
 {
-    //[[RKObjectManager sharedManager] cancelAllObjectRequestOperationsWithMethod:RKRequestMethodAny matchingPathPattern:path];
-    
-    //[self configureRestKitForUser];
-    //[self loadUsers];
-    
     [self.slideMenu slideUp:nil];
 }
 
@@ -65,15 +59,9 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    // Do any additional setup after loading the view, typically from a nib.
-    
-    baseURL = [NSURL URLWithString:kBASEURL];  // [NSURL URLWithString:@"https://api.github.com"];
-    
+
     [self configureRestKitForRepo];
     [self loadRepos];
-    
-    //[self configureRestKitForUser];
-    //[self loadUsers];
 }
 
 - (void)viewDidAppear:(BOOL)animated
@@ -185,12 +173,6 @@
     
     NSLog(@"repo.repository.homepage_ : %@", repo.repository.homepage_);
     
-    //HomepageViewController *homepageViewController = [HomepageViewController new];
-    //homepageViewController.homepageURLString = repo.repository.homepage_;
-    //theUrlString = repo.repository.homepage_;
-    
-    //[self.navigationController presentViewController:homepageViewController animated:YES completion:nil];
-    
     [self performSegueWithIdentifier:@"HPV" sender:repo.repository.homepage_];  // self];
 }
 
@@ -198,7 +180,7 @@
 - (void)configureRestKitForRepo
 {
     // initialize AFNetworking HTTPClient
-    //NSURL *baseURL = [NSURL URLWithString:kBASEURL];
+    NSURL *baseURL = [NSURL URLWithString:kBASEURL];
     AFRKHTTPClient *client = [[AFRKHTTPClient alloc] initWithBaseURL:baseURL];
     
     // initialize RestKit
@@ -314,22 +296,65 @@
     responseDescriptor = [RKResponseDescriptor responseDescriptorWithMapping:repoMapping method:RKRequestMethodGET pathPattern:pathPattern keyPath:nil statusCodes:[NSIndexSet indexSetWithIndex:200]];
     
     [objectManager addResponseDescriptor:responseDescriptor];
-    
-    // 주석추가
 }
+
+static NSString *const keyToSortBy = @"stargazersUrl_";
 
 - (void)loadRepos
 {    
     NSString *userName = [NSString stringWithUTF8String:kUSERNAME];
     NSString *pathPattern = [NSString stringWithFormat:@"/users/%@/repos", userName];
     
+    __block NSArray *tempArray = nil;
+    __block NSMutableArray *partArray = [NSMutableArray arrayWithCapacity:1];
+    
     [objectManager getObjectsAtPath:pathPattern parameters:nil success:^(RKObjectRequestOperation *operation, RKMappingResult *mappingResult)
      {
-         _repos = mappingResult.array;
+         //_repos = mappingResult.array;
+         tempArray = mappingResult.array;
 
-         [self.repoTableView reloadData];
+         for (int i = 0; i < [tempArray count]; i++)
+         {
+             Repo *repo = tempArray[i];
+             
+            [partArray addObject:[NSDictionary dictionaryWithObjectsAndKeys:(NSNumber *)repo.repository.stargazersCount_, @"stargazersCount", [NSNumber numberWithInt:i], @"index", nil]];
+         }
          
-         [[RKObjectManager sharedManager] cancelAllObjectRequestOperationsWithMethod:RKRequestMethodAny matchingPathPattern:pathPattern];
+         NSArray *unsortedPartArray = [NSArray arrayWithArray:(NSArray *)partArray];
+         
+         NSSortDescriptor *stargazersCountDescriptor = [[NSSortDescriptor alloc] initWithKey:@"stargazersCount" ascending:YES];
+         NSArray *sortDescriptors = [NSArray arrayWithObject:stargazersCountDescriptor];
+         NSArray *sortedPartArray = [unsortedPartArray sortedArrayUsingDescriptors:sortDescriptors];
+         
+         NSMutableArray *indexOrderArray = [NSMutableArray arrayWithCapacity:1];
+         
+         for (int i = 0; i < [sortedPartArray count]; i++)
+         {
+             [indexOrderArray addObject:[sortedPartArray[i] objectForKey:@"index"]];
+         }
+         
+         NSLog(@"indexOrderArray : %@", indexOrderArray);
+         
+         NSMutableArray *preRepos = [NSMutableArray arrayWithCapacity:1];
+         
+         for (int i = 0; i < [indexOrderArray count]; i++)
+         {
+             NSNumber *I = [indexOrderArray objectAtIndex:i];
+             
+             NSLog(@"I : %@", I);
+             
+             int k = [I intValue];
+             
+             NSLog(@"k : %i", k);
+             
+             Repo *repo = [tempArray objectAtIndex:k];
+             
+             [preRepos addObject:repo];
+         }
+         
+         _repos = preRepos;
+         
+         [self.repoTableView reloadData];
      } failure:^(RKObjectRequestOperation *operation, NSError *error)
      {
          NSLog(@"What do you mean by 'there is no coffee?': %@", error);
