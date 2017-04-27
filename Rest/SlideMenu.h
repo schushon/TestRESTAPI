@@ -11,7 +11,7 @@
 @interface SlideMenu : UITableViewController
 
 @property(nonatomic, weak) ViewController *mainView;
-//@property (nonatomic, strong) NSArray *profiles;
+@property (nonatomic, strong) NSArray *users;
 
 @property(nonatomic, weak) IBOutlet UIButton *dismissMenuButton;
 @property(nonatomic, weak) IBOutlet UIView *dragDelegateView;

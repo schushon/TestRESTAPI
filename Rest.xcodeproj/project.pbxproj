@@ -24,6 +24,7 @@
 		4C8C294E1EAFB8E9003FB9D8 /* Repo.m in Sources */ = {isa = PBXBuildFile; fileRef = 4C8C294D1EAFB8E9003FB9D8 /* Repo.m */; };
 		4C8C29511EAFB959003FB9D8 /* Profile.m in Sources */ = {isa = PBXBuildFile; fileRef = 4C8C29501EAFB959003FB9D8 /* Profile.m */; };
 		4C93519C1EAE5B8300FDA228 /* HomepageViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4C93519B1EAE5B8300FDA228 /* HomepageViewController.m */; };
+		4CC2D4681EB18849009D3EE8 /* User.m in Sources */ = {isa = PBXBuildFile; fileRef = 4CC2D4671EB18849009D3EE8 /* User.m */; };
 		4CDB0C711EACADFD00B11DF6 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 4CDB0C701EACADFD00B11DF6 /* main.m */; };
 		4CDB0C741EACADFD00B11DF6 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 4CDB0C731EACADFD00B11DF6 /* AppDelegate.m */; };
 		4CDB0C771EACADFD00B11DF6 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4CDB0C761EACADFD00B11DF6 /* ViewController.m */; };
@@ -33,7 +34,6 @@
 		4CDB0C951EACADFD00B11DF6 /* RestUITests.m in Sources */ = {isa = PBXBuildFile; fileRef = 4CDB0C941EACADFD00B11DF6 /* RestUITests.m */; };
 		4CDB0CA41EACB6DD00B11DF6 /* RepoTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 4CDB0CA31EACB6DD00B11DF6 /* RepoTableViewCell.m */; };
 		4CDB0CA81EACE40700B11DF6 /* Repository.m in Sources */ = {isa = PBXBuildFile; fileRef = 4CDB0CA71EACE40700B11DF6 /* Repository.m */; };
-		4CDB0CAB1EACE50B00B11DF6 /* User.m in Sources */ = {isa = PBXBuildFile; fileRef = 4CDB0CAA1EACE50B00B11DF6 /* User.m */; };
 		4CDB0CAE1EACE56200B11DF6 /* RelationUrls.m in Sources */ = {isa = PBXBuildFile; fileRef = 4CDB0CAD1EACE56200B11DF6 /* RelationUrls.m */; };
 		4CDB0CB11EACF6A400B11DF6 /* Owner.m in Sources */ = {isa = PBXBuildFile; fileRef = 4CDB0CB01EACF6A400B11DF6 /* Owner.m */; };
 		4CDB0CB31EACFDFC00B11DF6 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4CDB0CB21EACFDFC00B11DF6 /* CoreGraphics.framework */; };
@@ -78,6 +78,8 @@
 		4C8C29501EAFB959003FB9D8 /* Profile.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Profile.m; sourceTree = "<group>"; };
 		4C93519A1EAE5B8300FDA228 /* HomepageViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HomepageViewController.h; sourceTree = "<group>"; };
 		4C93519B1EAE5B8300FDA228 /* HomepageViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HomepageViewController.m; sourceTree = "<group>"; };
+		4CC2D4661EB18849009D3EE8 /* User.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = User.h; sourceTree = "<group>"; };
+		4CC2D4671EB18849009D3EE8 /* User.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = User.m; sourceTree = "<group>"; };
 		4CDB0C6C1EACADFD00B11DF6 /* Rest.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Rest.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4CDB0C701EACADFD00B11DF6 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		4CDB0C721EACADFD00B11DF6 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
@@ -96,8 +98,6 @@
 		4CDB0CA51EACDF5000B11DF6 /* Rest-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Rest-Prefix.pch"; sourceTree = SOURCE_ROOT; };
 		4CDB0CA61EACE40700B11DF6 /* Repository.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Repository.h; sourceTree = "<group>"; };
 		4CDB0CA71EACE40700B11DF6 /* Repository.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Repository.m; sourceTree = "<group>"; };
-		4CDB0CA91EACE50B00B11DF6 /* User.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = User.h; sourceTree = "<group>"; };
-		4CDB0CAA1EACE50B00B11DF6 /* User.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = User.m; sourceTree = "<group>"; };
 		4CDB0CAC1EACE56200B11DF6 /* RelationUrls.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RelationUrls.h; sourceTree = "<group>"; };
 		4CDB0CAD1EACE56200B11DF6 /* RelationUrls.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RelationUrls.m; sourceTree = "<group>"; };
 		4CDB0CAF1EACF6A400B11DF6 /* Owner.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Owner.h; sourceTree = "<group>"; };
@@ -177,8 +177,8 @@
 				4C1184491EAF26B50046BC37 /* SlideMenu.storyboard */,
 				4C7B1AC91EAF4F120033F2D6 /* DragDelegateView.h */,
 				4C7B1ACA1EAF4F120033F2D6 /* DragDelegateView.m */,
-				4CDB0CA91EACE50B00B11DF6 /* User.h */,
-				4CDB0CAA1EACE50B00B11DF6 /* User.m */,
+				4CC2D4661EB18849009D3EE8 /* User.h */,
+				4CC2D4671EB18849009D3EE8 /* User.m */,
 				4C8C294F1EAFB959003FB9D8 /* Profile.h */,
 				4C8C29501EAFB959003FB9D8 /* Profile.m */,
 				4CDB0C7B1EACADFD00B11DF6 /* Assets.xcassets */,
@@ -403,13 +403,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4CC2D4681EB18849009D3EE8 /* User.m in Sources */,
 				4C1184481EAF26AD0046BC37 /* SlideMenu.m in Sources */,
 				4CDB0CAE1EACE56200B11DF6 /* RelationUrls.m in Sources */,
 				4CDB0CA41EACB6DD00B11DF6 /* RepoTableViewCell.m in Sources */,
 				4C8C294E1EAFB8E9003FB9D8 /* Repo.m in Sources */,
 				4C7B1ACB1EAF4F120033F2D6 /* DragDelegateView.m in Sources */,
 				4CDB0CA81EACE40700B11DF6 /* Repository.m in Sources */,
-				4CDB0CAB1EACE50B00B11DF6 /* User.m in Sources */,
 				4CDB0C771EACADFD00B11DF6 /* ViewController.m in Sources */,
 				4C8C29511EAFB959003FB9D8 /* Profile.m in Sources */,
 				4CDB0CB11EACF6A400B11DF6 /* Owner.m in Sources */,

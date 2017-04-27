@@ -23,8 +23,11 @@ CGFloat PointDistance(CGPoint a, CGPoint b)
 //#define FULL_MENU
 
 @interface SlideMenu ()
+{
+    RKObjectManager *objectManager;
+    RKResponseDescriptor *responseDescriptor;
+}
 
-@property (nonatomic, strong) NSArray *profiles;
 @property (nonatomic, assign) CGFloat width;
 @property (nonatomic, assign) CGPoint startPoint;
 @property (nonatomic, assign) CGPoint oldPoint;
@@ -50,7 +53,7 @@ CGFloat PointDistance(CGPoint a, CGPoint b)
     
     self.bReload = YES;
     
-    self.profiles = nil;  //self.profiles[0];
+    self.users = nil;  //self.profiles[0];
 }
 
 - (void)didReceiveMemoryWarning
@@ -229,8 +232,8 @@ CGFloat PointDistance(CGPoint a, CGPoint b)
          f.origin.x = CGRectGetMaxX(self.view.frame);
          self.dragDelegateView.frame = f;
      }];
-    
-    [self.tableView reloadData];
+
+   // [self.tableView reloadData];
 }
 
 #pragma mark - GestureRecognizer
@@ -300,11 +303,16 @@ CGFloat PointDistance(CGPoint a, CGPoint b)
     AFRKHTTPClient *client = [[AFRKHTTPClient alloc] initWithBaseURL:baseURL];
     
     // initialize RestKit
-    RKObjectManager *objectManager = [[RKObjectManager alloc] initWithHTTPClient:client];
+    if (objectManager)
+    {
+        objectManager = nil;
+    }
+    
+    objectManager = [[RKObjectManager alloc] initWithHTTPClient:client];
     
     // setup object mappings
     RKObjectMapping *userMapping = [RKObjectMapping mappingForClass:[User class]];
-    [userMapping addPropertyMapping:[RKAttributeMapping attributeMappingFromKeyPath:nil toKeyPath:@"user"]];
+    [userMapping addAttributeMappingsFromArray:@[@"user"]];
     
     RKObjectMapping *profileMapping = [RKObjectMapping mappingForClass:[Profile class]];
     [profileMapping addAttributeMappingsFromDictionary:@{@"login" : @"login_",  // "JakeWharton",
@@ -345,7 +353,7 @@ CGFloat PointDistance(CGPoint a, CGPoint b)
     [userMapping addPropertyMapping:[RKRelationshipMapping relationshipMappingFromKeyPath:nil toKeyPath:@"profile" withMapping:profileMapping]];
     
     // register mappings with the provider using a response descriptor
-    RKResponseDescriptor *responseDescriptor = [RKResponseDescriptor responseDescriptorWithMapping:userMapping method:RKRequestMethodGET pathPattern:pathPattern keyPath:nil statusCodes:[NSIndexSet indexSetWithIndex:200]];  //:(RKStatusCodeClassSuccessful)
+    responseDescriptor = [RKResponseDescriptor responseDescriptorWithMapping:userMapping method:RKRequestMethodGET pathPattern:pathPattern keyPath:nil statusCodes:[NSIndexSet indexSetWithIndex:200]];  //:(RKStatusCodeClassSuccessful)
     
     [objectManager addResponseDescriptor:responseDescriptor];
     
@@ -354,32 +362,48 @@ CGFloat PointDistance(CGPoint a, CGPoint b)
 
 - (void)loadUsers
 {
-    //    NSString *latLon = @"37.33,-122.03"; // approximate latLon of The Mothership
-    //    NSString *clientID = [NSString stringWithUTF8String:kCLIENTID];
-    //    NSString *clientSecret = [NSString stringWithUTF8String:kCLIENTSECRET];
-    //
-    //    NSDictionary *queryParams;
-    //
-    //    queryParams = [NSDictionary dictionaryWithObjectsAndKeys:
-    //                   latLon, @"ll",
-    //                   clientID, @"client_id",
-    //                   clientSecret, @"client_secret",
-    //                   @"4bf58dd8d48988d1e0931735", @"categoryId",
-    //                   @"20140118", @"v", nil];
-    
     NSString *userName = [NSString stringWithUTF8String:kUSERNAME];
     NSString *pathPattern = [NSString stringWithFormat:@"/users/%@", userName];
     
-    [[RKObjectManager sharedManager] getObjectsAtPath:pathPattern parameters:nil success:^(RKObjectRequestOperation *operation, RKMappingResult *mappingResult)
+    [objectManager getObjectsAtPath:pathPattern parameters:nil success:^(RKObjectRequestOperation *operation, RKMappingResult *mappingResult)
      {
-         _profiles = mappingResult.array;
+         self.users = mappingResult.array;
+        
+         User *user = _users[0];
          
-         //self.slideMenu.profiles = _profiles;
-         //[self.slideMenu reloadData];
+         NSLog(@"user : %@", user);
+         
+         NSURL *imageURL = [NSURL URLWithString:user.profile.avatarUrl_];
+         
+         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), ^
+                        {
+                            NSData *imageData = [NSData dataWithContentsOfURL:imageURL];
+                            
+                            dispatch_async(dispatch_get_main_queue(), ^
+                                           {
+                                               // Update the UI
+                                               self.profileImageView.image = [UIImage imageWithData:imageData];
+                                           });
+                        });
+
+         self.nameLabel.text = user.profile.name_;
+         self.emailLabel.text = user.profile.email_;
+         self.companyLabel.text = user.profile.company_;
+         self.locationLabel.text = user.profile.location_;
+         self.blogLabel.text = user.profile.blog_;
+         self.followersLabel.text = [NSString stringWithFormat:@"%@", user.profile.followers_];
+         self.followingLabel.text = [NSString stringWithFormat:@"%@", user.profile.following_];
+         self.repositoriesLabel.text = [NSString stringWithFormat:@"%@", user.profile.publicRepos_];
+         
+         [self reloadData];
      } failure:^(RKObjectRequestOperation *operation, NSError *error)
      {
          NSLog(@"What do you mean by 'there is no coffee?': %@", error);
      }];
+    
+    [objectManager removeResponseDescriptor:responseDescriptor];
+    responseDescriptor = nil;
+    objectManager = nil;
 }
 
 

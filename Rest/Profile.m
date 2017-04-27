@@ -247,6 +247,7 @@
         _bio_ = bio_;
     }
 }
+
 - (void)setPublicRepos_:(NSNumber *)publicRepos_  // 93,
 {
     _publicRepos_ = (NSNumber *)[NSNull null];
