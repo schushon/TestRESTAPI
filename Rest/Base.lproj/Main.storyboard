@@ -30,7 +30,7 @@
                                         <rect key="frame" x="0.0" y="28" width="375" height="100"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="eh0-2l-KfE" id="zEV-pa-sKI">
-                                            <rect key="frame" x="0.0" y="0.0" width="375" height="99.5"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="375" height="100"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="sUH-63-LG4">
@@ -118,6 +118,7 @@
                         <outlet property="dismissMenuButton" destination="DI1-hn-ea3" id="Pdp-0y-b1V"/>
                         <outlet property="dragDelegateView" destination="duz-Ux-cHC" id="P38-1r-97R"/>
                         <outlet property="repoTableView" destination="sOj-a6-aa0" id="p6g-8h-RDb"/>
+                        <outlet property="slideMenuBarButtonItem" destination="z95-j7-63c" id="kDd-Jr-wv3"/>
                         <segue destination="zRl-M4-URk" kind="show" identifier="HPV" id="xsC-Mw-htV"/>
                     </connections>
                 </viewController>

@@ -22,6 +22,8 @@
     RKResponseDescriptor *responseDescriptor;
     
     NSString *theUrlString;
+    
+    BOOL slideToggle;
 }
 
 @property (nonatomic, strong) NSArray *repos;
@@ -47,7 +49,22 @@
 // 사이드 메뉴 호출 버튼 터치시 호출
 - (IBAction)slideUpMenu:(id)sender
 {
-    [self.slideMenu slideUp:nil];
+    slideToggle = !slideToggle;
+    
+    if (slideToggle)
+    {
+        [self.slideMenu slideUp:nil];
+        
+        UIImage *backgroundImage = [UIImage imageNamed:@"back.png"];
+        [self.slideMenuBarButtonItem setImage:backgroundImage];
+    }
+    else
+    {
+        [self.slideMenu dismiss:nil];
+        
+        UIImage *backgroundImage = [UIImage imageNamed:@"slideMenu.png"];
+        [self.slideMenuBarButtonItem setImage:backgroundImage];
+    }
 }
 
 // 사이드 메뉴 히든 버튼 터치시 호출
@@ -59,6 +76,8 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    
+    slideToggle = NO;
 
     [self configureRestKitForRepo];
     [self loadRepos];

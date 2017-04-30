@@ -15,6 +15,7 @@
 @property (nonatomic, weak) IBOutlet UIButton *dismissMenuButton;
 @property (nonatomic, weak) IBOutlet DragDelegateView *dragDelegateView;
 @property (nonatomic, weak) IBOutlet UITableView *repoTableView;
+@property (nonatomic, weak) IBOutlet UIBarButtonItem *slideMenuBarButtonItem;
 @property (nonatomic, weak) SlideMenu *slideMenu;
 
 @end
